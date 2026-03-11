@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpeakWise AI | Haruna Lawali Edition</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-deep: #020205;
+            --neon-blue: #00f2ff;
+            --neon-pink: #ff0055;
+            --glass: rgba(255, 255, 255, 0.05);
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-deep);
+            color: white;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+        }
+
+        /* Header Styles */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 40px;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--glass);
+        }
+
+        .header-left { display: flex; align-items: center; gap: 15px; }
+        .header-left img { height: 55px; border-radius: 8px; }
+        .logo-text { font-weight: 100; letter-spacing: 1px; font-size: 1.2rem; }
+
+        #user-profile-btn {
+            cursor: pointer;
+            font-size: 1.5rem;
+            transition: 0.3s;
+            color: var(--neon-blue);
+        }
+
+        /* Background Effects */
+        .glow-overlay-top {
+            position: absolute;
+            top: 0; width: 100%; height: 50vh;
+            background: radial-gradient(circle at 50% 0%, rgba(0, 242, 255, 0.15), transparent 70%);
+            pointer-events: none;
+        }
+
+        .glow-overlay-bottom {
+            position: absolute;
+            bottom: 0; width: 100%; height: 50vh;
+            background: radial-gradient(circle at 50% 100%, rgba(0, 100, 255, 0.2), transparent 70%);
+            pointer-events: none;
+        }
+
+        /* Main AI Display */
+        .main-stage {
+            height: calc(100vh - 80px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .visualizer-box {
+            position: relative;
+            width: 320px;
+            height:   320px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .bot-frame {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 0 20px rgba(0, 242, 255, 0.3));
+            transition: 0.5s all ease-in-out;
+            opacity: 0.8;
+        }
+
+        .talking-active {
+            filter: brightness(1.2) drop-shadow(0 0 30px var(--neon-blue));
+            opacity: 1;
+        }
+
+        /* The Modern Orb Button */
+        .orb-container {
+            margin-top: 6opx;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .orb {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background: rgba(0, 242, 255, 0.1);
+            border: 2px solid var(--neon-blue);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            z-index: 5;
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 0 20px rgba(0, 242, 255, 0.2);
+        }
+
+        .orb i {
+            font-size: 2rem;
+            color: var(--neon-blue);
+        }
+
+        .orb.pulse {
+            animation: pulse-ring 1.5s infinite;
+            border-color: var(--neon-pink);
+            color: var(--neon-pink);
+        }
+
+        @keyframes pulse-ring {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 0, 85, 0.7); }
+            70% { transform: scale(1.1); box-shadow: 0 0 0 20px rgba(255, 0, 85, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 0, 85, 0); }
+        }
+
+        /* Scanner Line */
+        .scanner {
+            position: absolute;
+            width: 110%;
+            height: 3px;
+            background: var(--neon-blue);
+            box-shadow: 0 0 15px var(--neon-blue);
+            top: 0;
+            z-index: 10;
+            animation: scan-move 2.5s infinite ease-in-out;
+        }
+
+        @keyframes scan-move {
+            0%, 100% { top: 0%; opacity: 0; }
+            50% { top: 100%; opacity: 1; }
+        }
+
+        /* Modal / Profile */
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-card {
+            background: #111;
+            padding: 40px;
+            border-radius: 20px;
+            border: 1px solid var(--neon-blue);
+            width: 350px;
+            text-align: center;
+            position: relative;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 15px; right: 20px;
+            cursor: pointer; font-size: 1.5rem;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 20px 0;
+            background: #222;
+            border: 1px solid #444;
+            color: white;
+            border-radius: 8px;
+            outline: none;
+        }
+
+        input:focus { border-color: var(--neon-blue); }
+
+        button {
+            background: var(--neon-blue);
+            color: black;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .hidden { display: none; }
+        
+        
+        
+        /* Footer Fix */
+footer {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    height: 60px;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(15px);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    border-top: 1px solid var(--glass);
+    z-index: 100;
+}
+
+footer a {
+    color: #888;
+    text-decoration: none;
+    font-size: 0.8rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: 0.3s;
+}
+
+footer a:hover { color: var(--neon-blue); }
+
+/* Glow Rain Animation */
+.rain {
+    position: absolute;
+    width: 2px;
+    height: 100px;
+    background: linear-gradient(transparent, var(--neon-blue));
+    opacity: 0.3;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.rain-up {
+    background: linear-gradient(var(--neon-pink), transparent);
+}
+
+/* Matsayin Orb Button (Adjust margin-top to move it up/down) */
+.orb-container {
+    margin-top: -70px; /* Ka rage wannan lambar idan kana son ya kara sama */
+    position: relative;
+    z-index: 20;
+}
+
+/* Professional Modal Close Icon */
+.close-modal {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    cursor: pointer;
+    font-size: 1.2rem;
+    color: #ff0055;
+}
+
+
+
+
+.visualizer-box{
+    position: relative;
+    overflow: hidden;
+    border-radius: 20px;
+}
+
+.bot-frame {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 0 20px rgba(0, 242, 255, 0.3));
+    transition: 0.5s all ease-in-out;
+    opacity: 0.8;
+    border-radius: 20px;
+}
+
+/* dark bottom fade */
+.visualizer-box::after{
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 30%;
+    background: linear-gradient(
+        to top,
+        rgba(0,0,0,0.95),
+        rgba(0,0,0,0.1),
+        transparent
+    );
+    pointer-events: none;
+}
+
+/* glowing hover ring */
+.visualizer-box::before{
+    content: "";
+    position: absolute;
+    inset: -3px;
+    border-radius: 22px;
+    border: 2px solid rgba(0, 242, 255, 0);
+    transition: 0.4s;
+    pointer-events: none;
+}
+
+/* hover effect */
+.visualizer-box:hover::before{
+    border: 2px solid rgba(0, 242, 255, 0.7);
+    box-shadow:
+        0 0 178px rgba(0,242,255,0.6),
+        0 0 40px rgba(0,242,255,0.4);
+}
+
+.visualizer-box:hover .bot-frame{
+    opacity: 1;
+    transform: scale(1.02);
+}
+
+ 
+.h1{
+    position: absolute;
+    top: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    
+    font-size: 14px;
+    text-align: center;
+    max-width: 190%;
+    
+    color: #fff;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+
+    z-index: 1000;
+}
+    </style>
+</head>
+<body>
+
+    <div class="glow-overlay-top"></div>
+    <div class="glow-overlay-bottom"></div>
+
+    <header>
+        <div class="header-left">
+            <img src="https://i.imgur.com/N7AlLsd.png" alt="Logo">
+            
+        </div>
+        <div id="user-profile-btn">
+            <i class="fa-solid fa-sliders"></i>
+        </div>
+    </header>
+
+ 
+    <main class="main-stage">
+        <div class="h1"> 
+                SpeakWise AI helps you practice real English conversations like talking to a teacher.
+            </div>
+        
+        <div class="visualizer-box">           
+                      
+            <div id="scanner-line" class="scanner hidden"></div>
+                       
+                   <img style="width: 100%;" src="https://i.imgur.com/IpEhQBe.png" id="bot-ui" class="bot-frame" alt="AI Avatar">  
+        </div>
+        
+        
+        
+        
+
+        <div class="orb-container" id="start-btn">
+            <div class="orb" id="orb-visual">
+                <i class="fa-solid fa-atom"></i>
+            </div>
+            <p id="status-label" style="text-align:center; margin-top:15px; font-size:0.8rem; color:var(--neon-blue); letter-spacing:2px;">READY</p>
+        </div>
+    </main>
+
+    <div id="name-modal" class="modal">
+        <div class="modal-card">
+            <span class="close-modal">&times;</span>
+            <h2 style="color:var(--neon-blue)">Identify Yourself</h2>
+            <p style="font-size:0.9rem; color:#888">This helps me personalize your learning journey.</p>
+            <input type="text" id="username-input" placeholder="Your Full Name">
+            <button id="save-btn">INITIALIZE</button>
+        </div>
+    </div>
+    
+    <footer>
+    <a href="#"><i class="fa-solid fa-circle-info"></i> About</a>
+    <a href="#"><i class="fa-solid fa-icons"></i> Media</a>
+    <a href="#"><i class="fa-solid fa-shield-halved"></i> Privacy</a>
+</footer>
+
+<div id="rain-container" style="position:fixed; inset:0; pointer-events:none;"></div>
+
+    <script type="module">
+    import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
+
+    const API_KEY = "AIzaSyDo7WaZSHytqJcNwE9XvLxfjoAPVJrxkGc"; 
+    const genAI = new GoogleGenerativeAI(API_KEY);
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+    const botImg = document.getElementById('bot-ui');
+    const orb = document.getElementById('orb-visual');
+    const scanner = document.getElementById('scanner-line');
+    const statusLabel = document.getElementById('status-label');
+    const startBtn = document.getElementById('start-btn');
+
+    let chatHistory = JSON.parse(localStorage.getItem('sw_history')) || [];
+    let isListening = false;
+    let autoRestart = false;
+
+    const safePlay = (audio) => {
+        audio.play().catch(() => {});
+    };
+
+    const startSound = new Audio('sound.mp3');
+    const errorSound = new Audio('error.mp3');
+
+    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    recognition.lang = 'en-US'; 
+    recognition.continuous = false; 
+    recognition.interimResults = false;
+
+    const synth = window.speechSynthesis;
+
+    const systemPrompt = `You are SpeakWise AI, created by Haruna Lawali from Zamfara. 
+    You are an expert English teacher who also understands Hausa perfectly. 
+    1. If the user speaks Hausa, reply in a mix of Hausa and English to help them learn.
+    2. Correct their English grammar. If they get it right, say "Correct, continue / Daidai ne, cigaba".
+    3. Keep it professional and friendly.`;
+
+    async function processAI(userInput) {
+        if (!userInput || userInput.trim() === "") return;
+        
+        statusLabel.innerText = "THINKING...";
+        scanner.classList.remove('hidden');
+        
+        try {
+            const chat = model.startChat({ history: chatHistory });
+            const result = await chat.sendMessage(systemPrompt + "\nUser: " + userInput);
+            const response = await result.response;
+            const text = response.text();
+
+            chatHistory.push({ role: "user", parts: [{ text: userInput }] });
+            chatHistory.push({ role: "model", parts: [{ text: text }] });
+            localStorage.setItem('sw_history', JSON.stringify(chatHistory.slice(-2)));
+
+            speakResponse(text);
+        } catch (e) {
+            statusLabel.innerText = "READY";
+            scanner.classList.add('hidden');
+        }
+    }
+
+    function speakResponse(text) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = text.match(/[a-zA-Z]/) ? 'en-US' : 'en-GB'; 
+        utterance.rate = 0.9;
+
+        utterance.onstart = () => {
+            scanner.classList.add('hidden');
+            botImg.src = "my.png"; 
+            botImg.classList.add('talking-active');
+            statusLabel.innerText = "AI SPEAKING";
+        };
+
+        utterance.onend = () => {
+            botImg.src = "https://i.imgur.com/WeJt7D6.png"; 
+            botImg.classList.remove('talking-active');
+            statusLabel.innerText = "READY";
+            autoRestart = true;
+            startListening();
+        };
+
+        synth.speak(utterance);
+    }
+
+    function startListening() {
+        if (isListening) return;
+        try {
+            recognition.start();
+            safePlay(startSound);
+        } catch (e) {}
+    }
+
+    function stopListening() {
+        if (!isListening) return;
+        recognition.stop();
+    }
+
+    startBtn.onclick = () => {
+        if (isListening) {
+            stopListening();
+        } else {
+            autoRestart = false;
+            startListening();
+        }
+    };
+
+    recognition.onstart = () => {
+        isListening = true;
+        orb.classList.add('pulse');
+        statusLabel.innerText = "LISTENING...";
+    };
+
+    recognition.onend = () => {
+        isListening = false;
+        orb.classList.remove('pulse');
+        if (statusLabel.innerText === "LISTENING...") {
+            statusLabel.innerText = "READY";
+        }
+    };
+
+    recognition.onresult = (e) => {
+        const transcript = e.results[0][0].transcript;
+        if (transcript) {
+            processAI(transcript);
+        }
+    };
+
+    recognition.onerror = (e) => {
+        isListening = false;
+        orb.classList.remove('pulse');
+        if (e.error !== 'no-speech') {
+            statusLabel.innerText = "READY";
+        }
+    }
+
+    const modal = document.getElementById('name-modal');
+    document.getElementById('user-profile-btn').onclick = () => modal.style.display = 'flex';
+    document.querySelector('.close-modal').onclick = () => modal.style.display = 'none';
+    document.getElementById('save-btn').onclick = () => {
+        const name = document.getElementById('username-input').value;
+        if(name) { localStorage.setItem('sw_username', name); modal.style.display = 'none'; }
+    };
+
+    function createRain() {
+        const container = document.getElementById('rain-container');
+        const drop = document.createElement('div');
+        const isUp = Math.random() > 0.5;
+        drop.classList.add('rain');
+        if(isUp) drop.classList.add('rain-up');
+        drop.style.left = Math.random() * window.innerWidth + 'px';
+        drop.style.animationDuration = (Math.random() * 2 + 1) + 's';
+        if(isUp) {
+            drop.style.bottom = "-100px";
+            drop.animate([{ bottom: '-100px' }, { bottom: '110vh' }], { duration: 3000 });
+        } else {
+            drop.style.top = "-100px";
+            drop.animate([{ top: '-100px' }, { top: '110vh' }], { duration: 3000 });
+        }
+        container.appendChild(drop);
+        setTimeout(() => drop.remove(), 3000);
+    }
+    setInterval(createRain, 150);
+</script>
+</body>
+</html>
