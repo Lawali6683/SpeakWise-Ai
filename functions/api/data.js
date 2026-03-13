@@ -37,11 +37,11 @@ export async function onRequest(context) {
       7. Voice Friendly: Keep answers short and clear so the voice-to-speech can read it easily.
     `;
 
-    // Shirya history don sabon tsarin API
+   
     const contents = history ? [...history] : [];
     contents.push({ role: "user", parts: [{ text: systemPrompt + "\n\nUser Input: " + userInput }] });
 
-    const apiURL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${env.GEMINI_API_KEY}`;
+   const apiURL=`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${env.GEMINI_API_KEY}`
 
     const geminiResponse = await fetch(apiURL, {
       method: "POST",
